@@ -1,0 +1,1229 @@
+/* =========================================================
+   EGO SCREEN
+========================================================= */
+
+.ego-screen {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      circle at 50% 42%,
+      #351451 0%,
+      #16091f 30%,
+      #07030b 65%,
+      #000000 100%
+    );
+  color: #ffffff;
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+/* =========================================================
+   BACKGROUND
+========================================================= */
+
+.ego-background {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.ego-grid {
+  position: absolute;
+  inset: 0;
+  opacity: 0.025;
+  background-image:
+    linear-gradient(
+      rgba(164, 87, 233, 0.4) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(164, 87, 233, 0.4) 1px,
+      transparent 1px
+    );
+  background-size: 90px 90px;
+}
+
+.ego-glow {
+  position: absolute;
+  width: 700px;
+  height: 700px;
+  left: 50%;
+  top: 43%;
+  transform: translate(-50%, -50%);
+  background:
+    radial-gradient(
+      circle,
+      rgba(151, 58, 255, 0.2) 0%,
+      rgba(105, 30, 170, 0.1) 35%,
+      transparent 70%
+    );
+  filter: blur(20px);
+  border-radius: 50%;
+}
+
+.ego-scanlines {
+  position: absolute;
+  inset: 0;
+  opacity: 0.012;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 3px,
+    #ffffff 4px
+  );
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.ego-header {
+  position: relative;
+  z-index: 5;
+  height: 82px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 0 42px;
+  border-bottom: 1px solid rgba(151, 83, 205, 0.1);
+}
+
+.ego-back-button {
+  justify-self: start;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border: none;
+  background: transparent;
+  color: rgba(204, 181, 230, 0.45);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  cursor: pointer;
+  transition: 0.25s ease;
+}
+
+.ego-back-button:hover {
+  color: #ffffff;
+}
+
+.ego-back-symbol {
+  color: #b66aff;
+  font-size: 27px;
+  line-height: 1;
+  text-shadow:
+    0 0 12px #8e3fff,
+    0 0 25px rgba(142, 63, 255, 0.5);
+}
+
+.ego-header-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.ego-header-small {
+  color: rgba(204, 181, 230, 0.35);
+  font-size: 8px;
+  letter-spacing: 4px;
+}
+
+.ego-header-title {
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 300;
+  letter-spacing: 8px;
+  text-shadow:
+    0 0 18px rgba(188, 108, 255, 0.6);
+}
+
+.ego-status {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(204, 181, 230, 0.35);
+  font-size: 8px;
+  letter-spacing: 3px;
+}
+
+.ego-status-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #c17aff;
+  box-shadow:
+    0 0 8px #c17aff,
+    0 0 18px rgba(193, 122, 255, 0.7);
+}
+
+/* =========================================================
+   CONTENT
+========================================================= */
+
+.ego-content {
+  position: relative;
+  z-index: 2;
+  width: min(1200px, calc(100% - 60px));
+  margin: 0 auto;
+  padding: 38px 0 35px;
+  text-align: center;
+}
+
+/* =========================================================
+   INTRO
+========================================================= */
+
+.ego-intro {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.ego-intro-line {
+  width: 100px;
+  height: 1px;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(176, 96, 241, 0.35)
+    );
+}
+
+.ego-intro-line:last-child {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(176, 96, 241, 0.35),
+      transparent
+    );
+}
+
+.ego-intro > div {
+  text-align: center;
+}
+
+.ego-intro-label {
+  margin: 0;
+  color: rgba(204, 181, 230, 0.32);
+  font-size: 8px;
+  letter-spacing: 5px;
+  text-align: center;
+}
+
+.ego-intro h1 {
+  display: none;
+}
+
+/* =========================================================
+   MAIN EGO
+========================================================= */
+
+.ego-main {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* =========================================================
+   EGO LEVEL PANEL
+========================================================= */
+
+.ego-level-panel {
+  position: relative;
+  width: min(850px, 100%);
+  min-height: 480px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  overflow: visible;
+  border: none;
+  background: transparent;
+  clip-path: none;
+}
+
+/* =========================================================
+   EGO AURA
+========================================================= */
+
+.ego-level-panel::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 480px;
+  height: 480px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(197, 122, 255, 0.2) 0%,
+      rgba(151, 58, 255, 0.12) 25%,
+      rgba(115, 35, 175, 0.06) 45%,
+      transparent 70%
+    );
+
+  filter: blur(18px);
+
+  animation:
+    egoAuraPulse 3.2s ease-in-out infinite;
+
+  pointer-events: none;
+}
+
+/* =========================================================
+   EGO ENERGY RING
+========================================================= */
+
+.ego-level-panel::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 330px;
+  height: 330px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+
+  border: 1px solid rgba(190, 110, 255, 0.13);
+
+  box-shadow:
+    0 0 35px rgba(153, 58, 238, 0.13),
+    inset 0 0 35px rgba(153, 58, 238, 0.08);
+
+  animation:
+    egoRingPulse 4s ease-in-out infinite;
+
+  pointer-events: none;
+}
+
+.ego-level-label {
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 9px;
+  letter-spacing: 7px;
+  text-align: center;
+}
+
+/* =========================================================
+   EGO NUMBER
+========================================================= */
+
+.ego-level-number {
+  position: relative;
+  z-index: 3;
+  margin-top: 8px;
+
+  color: #ffffff;
+
+  font-size: clamp(180px, 24vw, 310px);
+  line-height: 0.78;
+  font-weight: 200;
+  letter-spacing: -12px;
+
+  text-align: center;
+
+  text-shadow:
+    0 0 8px rgba(255, 255, 255, 0.95),
+    0 0 22px rgba(215, 161, 255, 0.95),
+    0 0 50px rgba(177, 89, 255, 0.8),
+    0 0 100px rgba(136, 42, 218, 0.6),
+    0 0 170px rgba(111, 30, 180, 0.3);
+
+  animation:
+    egoNumberBreath 3.2s ease-in-out infinite;
+}
+
+.ego-level-name {
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  margin-top: 35px;
+
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 300;
+  letter-spacing: 14px;
+  padding-left: 14px;
+
+  text-align: center;
+
+  text-shadow:
+    0 0 12px rgba(207, 145, 255, 0.7);
+}
+
+.ego-level-description {
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  margin-top: 17px;
+
+  color: rgba(204, 181, 230, 0.4);
+
+  font-size: 8px;
+  line-height: 1.8;
+  letter-spacing: 3px;
+
+  text-align: center;
+}
+
+/* =========================================================
+   OLD CORNERS
+========================================================= */
+
+.ego-panel-corner {
+  display: none;
+}
+
+/* =========================================================
+   EGO CALCULATION
+========================================================= */
+
+.ego-average-panel {
+  position: relative;
+  width: min(650px, 100%);
+  min-height: 82px;
+  margin: -5px auto 0;
+
+  padding: 15px 22px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+
+  border: 1px solid rgba(151, 83, 205, 0.11);
+
+  background:
+    rgba(8, 4, 13, 0.42);
+
+  clip-path: polygon(
+    0 8px,
+    8px 0,
+    calc(100% - 8px) 0,
+    100% 8px,
+    100% calc(100% - 8px),
+    calc(100% - 8px) 100%,
+    8px 100%,
+    0 calc(100% - 8px)
+  );
+}
+
+.ego-average-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: 4px;
+
+  color: rgba(204, 181, 230, 0.3);
+
+  font-size: 7px;
+  letter-spacing: 2px;
+
+  text-align: center;
+}
+
+.ego-average-main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 14px;
+
+  margin: 0;
+
+  text-align: center;
+}
+
+.ego-average-label {
+  color: rgba(204, 181, 230, 0.28);
+  font-size: 7px;
+  letter-spacing: 2px;
+}
+
+.ego-average-main strong {
+  margin: 0;
+
+  color: rgba(255, 255, 255, 0.65);
+
+  font-size: 19px;
+  font-weight: 300;
+
+  text-shadow:
+    0 0 10px rgba(175, 94, 255, 0.3);
+}
+
+.ego-average-arrow {
+  margin: 0;
+
+  color: rgba(166, 90, 255, 0.65);
+
+  font-size: 15px;
+}
+
+.ego-average-result {
+  color: rgba(224, 199, 255, 0.6);
+
+  font-size: 9px;
+  letter-spacing: 3px;
+}
+
+.ego-average-formula {
+  position: absolute;
+  right: 22px;
+  bottom: 8px;
+
+  color: rgba(204, 181, 230, 0.2);
+
+  font-size: 6px;
+  letter-spacing: 2px;
+}
+
+/* =========================================================
+   STATS SECTION
+========================================================= */
+
+.ego-stats-section {
+  width: min(850px, 100%);
+  margin: 28px auto 0;
+
+  text-align: center;
+}
+
+.ego-section-header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+
+  gap: 15px;
+
+  margin-bottom: 12px;
+}
+
+.ego-section-header span {
+  height: 1px;
+  background: rgba(151, 83, 205, 0.1);
+}
+
+.ego-section-header h2 {
+  margin: 0;
+
+  color: rgba(240, 230, 248, 0.3);
+
+  font-size: 7px;
+  font-weight: 400;
+  letter-spacing: 4px;
+
+  text-align: center;
+}
+
+.ego-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 7px;
+
+  width: 100%;
+}
+
+.ego-stat-card {
+  position: relative;
+
+  min-height: 65px;
+
+  padding: 10px 7px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+
+  border: 1px solid rgba(148, 83, 205, 0.09);
+
+  background:
+    rgba(12, 6, 18, 0.5);
+
+  clip-path: polygon(
+    0 7px,
+    7px 0,
+    calc(100% - 7px) 0,
+    100% 7px,
+    100% calc(100% - 7px),
+    calc(100% - 7px) 100%,
+    7px 100%,
+    0 calc(100% - 7px)
+  );
+}
+
+.ego-stat-name {
+  color: rgba(204, 181, 230, 0.28);
+
+  font-size: 6px;
+  letter-spacing: 2px;
+
+  text-align: center;
+}
+
+.ego-stat-value {
+  margin-top: 4px;
+
+  color: rgba(255, 255, 255, 0.65);
+
+  font-size: 18px;
+  font-weight: 300;
+
+  text-align: center;
+
+  text-shadow:
+    0 0 8px rgba(166, 80, 255, 0.3);
+}
+
+.ego-stat-line {
+  width: 15px;
+  height: 1px;
+  margin-top: 4px;
+
+  background: rgba(179, 101, 245, 0.25);
+}
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+.ego-footer {
+  position: relative;
+  z-index: 5;
+
+  min-height: 45px;
+
+  padding: 0 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  color: rgba(204, 181, 230, 0.22);
+
+  font-size: 7px;
+  letter-spacing: 3px;
+
+  border-top: 1px solid rgba(151, 83, 205, 0.07);
+}
+
+/* =========================================================
+   EGO LEVEL UP OVERLAY
+========================================================= */
+
+.ego-levelup-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      circle at center,
+      rgba(112, 32, 175, 0.45),
+      rgba(5, 1, 9, 0.96) 58%,
+      #000000 100%
+    );
+
+  animation:
+    egoOverlayIn 0.4s ease-out forwards,
+    egoOverlayOut 0.8s ease-in 3.4s forwards;
+}
+
+.ego-levelup-energy {
+  position: absolute;
+
+  left: 50%;
+  top: 50%;
+
+  width: 25px;
+  height: 150%;
+
+  transform-origin: center;
+
+  background:
+    linear-gradient(
+      to bottom,
+      transparent,
+      rgba(220, 163, 255, 0.9),
+      transparent
+    );
+
+  filter: blur(2px);
+
+  opacity: 0;
+}
+
+.ego-energy-one {
+  transform:
+    translate(-50%, -50%)
+    rotate(0deg);
+
+  animation:
+    egoEnergyOne 2.4s ease-out 0.15s forwards;
+}
+
+.ego-energy-two {
+  transform:
+    translate(-50%, -50%)
+    rotate(60deg);
+
+  animation:
+    egoEnergyTwo 2.6s ease-out 0.25s forwards;
+}
+
+.ego-energy-three {
+  transform:
+    translate(-50%, -50%)
+    rotate(-60deg);
+
+  animation:
+    egoEnergyThree 2.8s ease-out 0.35s forwards;
+}
+
+.ego-levelup-content {
+  position: relative;
+  z-index: 2;
+
+  width: min(800px, calc(100% - 50px));
+
+  padding: 60px 30px;
+
+  text-align: center;
+
+  border: 1px solid rgba(192, 111, 255, 0.55);
+
+  background:
+    radial-gradient(
+      circle at center,
+      rgba(69, 20, 101, 0.65),
+      rgba(8, 2, 13, 0.93)
+    );
+
+  box-shadow:
+    0 0 40px rgba(148, 55, 220, 0.3),
+    0 0 120px rgba(120, 36, 185, 0.15);
+
+  clip-path: polygon(
+    0 25px,
+    25px 0,
+    calc(100% - 25px) 0,
+    100% 25px,
+    100% calc(100% - 25px),
+    calc(100% - 25px) 100%,
+    25px 100%,
+    0 calc(100% - 25px)
+  );
+
+  animation:
+    egoLevelupContent 0.9s
+    cubic-bezier(0.16, 1, 0.3, 1)
+    0.15s
+    forwards;
+
+  transform: scale(0.65);
+  opacity: 0;
+}
+
+.ego-levelup-system {
+  color: rgba(204, 181, 230, 0.48);
+
+  font-size: 9px;
+  letter-spacing: 6px;
+}
+
+.ego-levelup-line {
+  width: 100px;
+  height: 1px;
+
+  margin: 22px auto;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      #b96fff,
+      transparent
+    );
+
+  box-shadow:
+    0 0 10px rgba(185, 111, 255, 0.7);
+}
+
+.ego-levelup-title {
+  color: #ffffff;
+
+  font-size: clamp(30px, 6vw, 68px);
+  font-weight: 200;
+  letter-spacing: 10px;
+
+  text-align: center;
+
+  text-shadow:
+    0 0 20px rgba(190, 111, 255, 0.9),
+    0 0 60px rgba(143, 48, 217, 0.65);
+}
+
+.ego-levelup-levels {
+  margin-top: 35px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 30px;
+}
+
+.ego-levelup-levels span {
+  color: rgba(204, 181, 230, 0.5);
+
+  font-size: 45px;
+  font-weight: 200;
+}
+
+.ego-levelup-levels b {
+  color: #a75aff;
+
+  font-size: 30px;
+  font-weight: 200;
+
+  text-shadow:
+    0 0 15px #8e3fff;
+}
+
+.ego-levelup-levels strong {
+  color: #ffffff;
+
+  font-size: 80px;
+  font-weight: 200;
+
+  text-shadow:
+    0 0 20px rgba(255, 255, 255, 1),
+    0 0 45px rgba(194, 112, 255, 0.95),
+    0 0 90px rgba(145, 49, 220, 0.65);
+
+  animation:
+    egoNewLevelPulse
+    1s
+    ease-in-out
+    infinite;
+}
+
+.ego-levelup-message {
+  margin-top: 30px;
+
+  color: #d9aeff;
+
+  font-size: 12px;
+  letter-spacing: 5px;
+
+  text-align: center;
+}
+
+.ego-levelup-submessage {
+  margin-top: 12px;
+
+  color: rgba(204, 181, 230, 0.4);
+
+  font-size: 9px;
+  letter-spacing: 3px;
+
+  text-align: center;
+}
+
+/* =========================================================
+   ANIMATIONS
+========================================================= */
+
+@keyframes egoAuraPulse {
+  0%,
+  100% {
+    transform:
+      translate(-50%, -50%)
+      scale(0.88);
+
+    opacity: 0.65;
+  }
+
+  50% {
+    transform:
+      translate(-50%, -50%)
+      scale(1.08);
+
+    opacity: 1;
+  }
+}
+
+@keyframes egoRingPulse {
+  0%,
+  100% {
+    transform:
+      translate(-50%, -50%)
+      scale(0.94);
+
+    opacity: 0.4;
+  }
+
+  50% {
+    transform:
+      translate(-50%, -50%)
+      scale(1.08);
+
+    opacity: 0.8;
+  }
+}
+
+@keyframes egoNumberBreath {
+  0%,
+  100% {
+    transform: scale(1);
+
+    text-shadow:
+      0 0 8px rgba(255, 255, 255, 0.95),
+      0 0 22px rgba(215, 161, 255, 0.95),
+      0 0 50px rgba(177, 89, 255, 0.8),
+      0 0 100px rgba(136, 42, 218, 0.6),
+      0 0 170px rgba(111, 30, 180, 0.3);
+  }
+
+  50% {
+    transform: scale(1.025);
+
+    text-shadow:
+      0 0 10px rgba(255, 255, 255, 1),
+      0 0 30px rgba(225, 183, 255, 1),
+      0 0 65px rgba(189, 108, 255, 0.95),
+      0 0 120px rgba(145, 49, 220, 0.75),
+      0 0 190px rgba(111, 30, 180, 0.4);
+  }
+}
+
+@keyframes egoOverlayIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes egoOverlayOut {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+@keyframes egoLevelupContent {
+  0% {
+    transform:
+      scale(0.65)
+      translateY(35px);
+
+    opacity: 0;
+  }
+
+  60% {
+    transform:
+      scale(1.06)
+      translateY(-4px);
+
+    opacity: 1;
+  }
+
+  100% {
+    transform:
+      scale(1)
+      translateY(0);
+
+    opacity: 1;
+  }
+}
+
+@keyframes egoNewLevelPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+@keyframes egoEnergyOne {
+  0% {
+    opacity: 0;
+
+    transform:
+      translate(-50%, -50%)
+      rotate(0deg)
+      scaleY(0);
+  }
+
+  35% {
+    opacity: 0.9;
+
+    transform:
+      translate(-50%, -50%)
+      rotate(0deg)
+      scaleY(1);
+  }
+
+  100% {
+    opacity: 0;
+
+    transform:
+      translate(-50%, -50%)
+      rotate(0deg)
+      scaleY(1.2);
+  }
+}
+
+@keyframes egoEnergyTwo {
+  0% {
+    opacity: 0;
+
+    transform:
+      translate(-50%, -50%)
+      rotate(60deg)
+      scaleY(0);
+  }
+
+  40% {
+    opacity: 0.8;
+
+    transform:
+      translate(-50%, -50%)
+      rotate(60deg)
+      scaleY(1);
+  }
+
+  100% {
+    opacity: 0;
+
+    transform:
+      translate(-50%, -50%)
+      rotate(60deg)
+      scaleY(1.2);
+  }
+}
+
+@keyframes egoEnergyThree {
+  0% {
+    opacity: 0;
+
+    transform:
+      translate(-50%, -50%)
+      rotate(-60deg)
+      scaleY(0);
+  }
+
+  45% {
+    opacity: 0.8;
+
+    transform:
+      translate(-50%, -50%)
+      rotate(-60deg)
+      scaleY(1);
+  }
+
+  100% {
+    opacity: 0;
+
+    transform:
+      translate(-50%, -50%)
+      rotate(-60deg)
+      scaleY(1.2);
+  }
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 900px) {
+  .ego-header {
+    padding: 0 20px;
+  }
+
+  .ego-content {
+    width: min(100% - 30px, 700px);
+    padding-top: 30px;
+  }
+
+  .ego-level-panel {
+    min-height: 420px;
+  }
+
+  .ego-level-panel::before {
+    width: 400px;
+    height: 400px;
+  }
+
+  .ego-level-panel::after {
+    width: 280px;
+    height: 280px;
+  }
+
+  .ego-stat-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .ego-footer {
+    padding: 15px 20px;
+    gap: 15px;
+    flex-wrap: wrap;
+  }
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+  .ego-header {
+    height: 72px;
+  }
+
+  .ego-header-small,
+  .ego-status {
+    display: none;
+  }
+
+  .ego-header-title {
+    font-size: 13px;
+    letter-spacing: 5px;
+  }
+
+  .ego-intro {
+    margin-bottom: 0;
+  }
+
+  .ego-level-panel {
+    min-height: 370px;
+  }
+
+  .ego-level-panel::before {
+    width: 330px;
+    height: 330px;
+  }
+
+  .ego-level-panel::after {
+    width: 230px;
+    height: 230px;
+  }
+
+  .ego-level-number {
+    font-size: clamp(150px, 45vw, 220px);
+    letter-spacing: -8px;
+  }
+
+  .ego-level-name {
+    margin-top: 28px;
+
+    font-size: 12px;
+    letter-spacing: 10px;
+    padding-left: 10px;
+  }
+
+  .ego-level-description {
+    font-size: 7px;
+  }
+
+  .ego-average-panel {
+    width: 100%;
+    min-height: 75px;
+
+    padding: 12px 14px;
+
+    gap: 12px;
+  }
+
+  .ego-average-main {
+    gap: 8px;
+  }
+
+  .ego-average-label {
+    display: none;
+  }
+
+  .ego-average-main strong {
+    font-size: 17px;
+  }
+
+  .ego-average-result {
+    font-size: 8px;
+    letter-spacing: 2px;
+  }
+
+  .ego-average-formula {
+    right: 14px;
+    bottom: 5px;
+  }
+
+  .ego-stat-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ego-levelup-content {
+    padding: 45px 20px;
+  }
+
+  .ego-levelup-title {
+    letter-spacing: 5px;
+  }
+
+  .ego-levelup-levels {
+    gap: 18px;
+  }
+
+  .ego-levelup-levels span {
+    font-size: 35px;
+  }
+
+  .ego-levelup-levels strong {
+    font-size: 65px;
+  }
+
+  .ego-footer {
+    font-size: 6px;
+  }
+}

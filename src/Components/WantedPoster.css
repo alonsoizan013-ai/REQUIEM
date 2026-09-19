@@ -1,0 +1,1186 @@
+.wanted-poster-screen {
+
+  position: relative;
+
+  width: 100%;
+
+  min-height: 100vh;
+
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      circle at 50% 35%,
+      #35105d 0%,
+      #180728 27%,
+      #08030f 58%,
+      #020106 100%
+    );
+
+  color: #ffffff;
+
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.wanted-background {
+
+  position: fixed;
+
+  inset: 0;
+
+  overflow: hidden;
+
+  pointer-events: none;
+}
+
+.wanted-grid {
+
+  position: absolute;
+
+  inset: -20%;
+
+  background-image:
+    linear-gradient(
+      rgba(168, 83, 255, 0.15) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(168, 83, 255, 0.15) 1px,
+      transparent 1px
+    );
+
+  background-size: 70px 70px;
+
+  opacity: 0.2;
+
+  transform:
+    perspective(800px)
+    rotateX(55deg)
+    scale(1.3);
+
+  transform-origin: center bottom;
+}
+
+.wanted-glow {
+
+  position: absolute;
+
+  border-radius: 50%;
+
+  filter: blur(50px);
+}
+
+.wanted-glow-one {
+
+  width: 850px;
+
+  height: 500px;
+
+  left: 50%;
+
+  top: 5%;
+
+  transform: translateX(-50%);
+
+  background:
+    radial-gradient(
+      ellipse,
+      rgba(154, 61, 240, 0.24),
+      transparent 70%
+    );
+}
+
+.wanted-glow-two {
+
+  width: 600px;
+
+  height: 400px;
+
+  left: 50%;
+
+  bottom: -200px;
+
+  transform: translateX(-50%);
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(95, 42, 190, 0.2),
+      transparent 70%
+    );
+}
+
+.wanted-scanlines {
+
+  position: absolute;
+
+  inset: 0;
+
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.015) 0,
+      rgba(255, 255, 255, 0.015) 1px,
+      transparent 1px,
+      transparent 4px
+    );
+}
+
+/* HEADER */
+
+.wanted-header {
+
+  position: relative;
+
+  z-index: 5;
+
+  height: 75px;
+
+  padding: 0 50px;
+
+  display: grid;
+
+  grid-template-columns: 1fr auto 1fr;
+
+  align-items: center;
+
+  border-bottom: 1px solid
+    rgba(164, 79, 239, 0.18);
+
+  background:
+    rgba(3, 1, 7, 0.8);
+}
+
+.wanted-back {
+
+  width: fit-content;
+
+  border: 0;
+
+  background: transparent;
+
+  color: rgba(220, 199, 241, 0.45);
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  font-size: 9px;
+
+  letter-spacing: 3px;
+
+  cursor: pointer;
+
+  transition: 0.25s ease;
+}
+
+.wanted-back:hover {
+
+  color: #d7b4ff;
+
+  transform: translateX(-3px);
+}
+
+.wanted-back span {
+
+  color: #b96fff;
+
+  font-size: 27px;
+
+  line-height: 1;
+
+  text-shadow:
+    0 0 12px rgba(185, 111, 255, 0.8);
+}
+
+.wanted-system {
+
+  color: #eee4ff;
+
+  font-size: 10px;
+
+  font-weight: 300;
+
+  letter-spacing: 7px;
+
+  text-shadow:
+    0 0 15px rgba(169, 83, 255, 0.5);
+}
+
+.wanted-online {
+
+  justify-self: end;
+
+  color: rgba(220, 199, 241, 0.35);
+
+  font-size: 8px;
+
+  letter-spacing: 3px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+}
+
+.wanted-online i {
+
+  width: 5px;
+
+  height: 5px;
+
+  border-radius: 50%;
+
+  background: #bc72ff;
+
+  box-shadow:
+    0 0 10px #bc72ff;
+}
+
+/* CONTENT */
+
+.wanted-content {
+
+  position: relative;
+
+  z-index: 2;
+
+  width: min(1180px, 94vw);
+
+  min-height: calc(100vh - 75px);
+
+  margin: auto;
+
+  padding: 30px 0;
+
+  box-sizing: border-box;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+}
+
+/* CARD */
+
+.wanted-card {
+
+  position: relative;
+
+  width: 100%;
+
+  max-width: 1120px;
+
+  min-height: 660px;
+
+  padding: 38px 75px 30px;
+
+  box-sizing: border-box;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  text-align: center;
+
+  background:
+    radial-gradient(
+      circle at 50% 35%,
+      rgba(86, 28, 139, 0.3),
+      rgba(14, 4, 25, 0.94) 48%,
+      rgba(2, 1, 6, 0.98) 100%
+    );
+
+  border: 1px solid
+    rgba(184, 103, 255, 0.4);
+
+  box-shadow:
+    0 0 40px rgba(133, 49, 204, 0.15),
+    0 0 100px rgba(133, 49, 204, 0.08),
+    inset 0 0 90px rgba(146, 62, 217, 0.08);
+
+  clip-path: polygon(
+    0 20px,
+    20px 0,
+    calc(100% - 20px) 0,
+    100% 20px,
+    100% calc(100% - 20px),
+    calc(100% - 20px) 100%,
+    20px 100%,
+    0 calc(100% - 20px)
+  );
+}
+
+.wanted-card-frame {
+
+  position: absolute;
+
+  inset: 10px;
+
+  border: 1px solid
+    rgba(190, 117, 255, 0.08);
+
+  pointer-events: none;
+}
+
+.wanted-corner {
+
+  position: absolute;
+
+  width: 32px;
+
+  height: 32px;
+}
+
+.wanted-corner-tl {
+
+  top: 20px;
+
+  left: 20px;
+
+  border-top: 1px solid #bb72ff;
+
+  border-left: 1px solid #bb72ff;
+}
+
+.wanted-corner-tr {
+
+  top: 20px;
+
+  right: 20px;
+
+  border-top: 1px solid #bb72ff;
+
+  border-right: 1px solid #bb72ff;
+}
+
+.wanted-corner-bl {
+
+  bottom: 20px;
+
+  left: 20px;
+
+  border-bottom: 1px solid #bb72ff;
+
+  border-left: 1px solid #bb72ff;
+}
+
+.wanted-corner-br {
+
+  right: 20px;
+
+  bottom: 20px;
+
+  border-right: 1px solid #bb72ff;
+
+  border-bottom: 1px solid #bb72ff;
+}
+
+/* TOP */
+
+.wanted-top-label {
+
+  width: 100%;
+
+  display: grid;
+
+  grid-template-columns: 1fr auto 1fr;
+
+  align-items: center;
+
+  gap: 20px;
+}
+
+.wanted-top-label > span {
+
+  height: 1px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(177, 92, 247, 0.35)
+    );
+}
+
+.wanted-top-label > span:last-child {
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(177, 92, 247, 0.35),
+      transparent
+    );
+}
+
+.wanted-top-label div {
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  gap: 4px;
+}
+
+.wanted-top-label small {
+
+  color: rgba(225, 204, 250, 0.65);
+
+  font-size: 7px;
+
+  letter-spacing: 5px;
+}
+
+.wanted-top-label strong {
+
+  color: rgba(225, 204, 250, 0.22);
+
+  font-size: 5px;
+
+  font-weight: 400;
+
+  letter-spacing: 3px;
+}
+
+/* WANTED */
+
+.wanted-title {
+
+  width: 100%;
+
+  margin-top: 22px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 25px;
+}
+
+.wanted-title span {
+
+  flex: 1;
+
+  height: 1px;
+
+  max-width: 180px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(187, 102, 255, 0.45)
+    );
+}
+
+.wanted-title span:last-child {
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(187, 102, 255, 0.45),
+      transparent
+    );
+}
+
+.wanted-title h1 {
+
+  margin: 0;
+
+  color: #ffffff;
+
+  font-size: clamp(52px, 6vw, 82px);
+
+  font-weight: 200;
+
+  letter-spacing: 15px;
+
+  text-indent: 15px;
+
+  line-height: 1;
+
+  text-shadow:
+    0 0 5px #ffffff,
+    0 0 18px #ead5ff,
+    0 0 40px rgba(190, 102, 255, 0.95),
+    0 0 80px rgba(139, 45, 219, 0.75);
+
+  animation: wantedAura 4s ease-in-out infinite;
+}
+
+@keyframes wantedAura {
+
+  0%,
+  100% {
+
+    filter: brightness(1);
+  }
+
+  50% {
+
+    filter: brightness(1.15);
+  }
+}
+
+/* NAME */
+
+.wanted-name {
+
+  width: 100%;
+
+  margin-top: 30px;
+
+  text-align: center;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+}
+
+.wanted-name label,
+.wanted-stat label,
+.wanted-bounty label {
+
+  display: block;
+
+  color: rgba(218, 194, 240, 0.38);
+
+  font-size: 7px;
+
+  letter-spacing: 5px;
+
+  margin-bottom: 8px;
+
+  text-align: center;
+}
+
+.wanted-name h2 {
+
+  margin: 0;
+
+  color: #f9f3ff;
+
+  font-size: clamp(28px, 4vw, 50px);
+
+  font-weight: 300;
+
+  letter-spacing: 8px;
+
+  text-transform: uppercase;
+
+  text-align: center;
+
+  text-shadow:
+    0 0 5px rgba(255, 255, 255, 0.9),
+    0 0 18px rgba(219, 179, 255, 0.85),
+    0 0 40px rgba(163, 72, 239, 0.7);
+}
+
+/* PESO / ALTURA / EDAD */
+
+.wanted-basic {
+
+  width: 100%;
+
+  margin-top: 25px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 25px;
+
+  text-align: center;
+}
+
+.wanted-basic div {
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 7px;
+
+  text-align: center;
+}
+
+.wanted-basic span {
+
+  color: rgba(213, 191, 235, 0.3);
+
+  font-size: 6px;
+
+  letter-spacing: 3px;
+
+  text-align: center;
+}
+
+.wanted-basic strong {
+
+  color: #e8dbfa;
+
+  font-size: 13px;
+
+  font-weight: 300;
+
+  letter-spacing: 2px;
+
+  text-align: center;
+
+  text-shadow:
+    0 0 10px rgba(171, 86, 246, 0.45);
+}
+
+.wanted-basic b {
+
+  color: rgba(177, 91, 248, 0.35);
+
+  font-weight: 300;
+}
+
+/* EGO / TITLE */
+
+.wanted-middle {
+
+  position: relative;
+
+  width: min(800px, 100%);
+
+  margin-top: 30px;
+
+  padding: 20px 30px;
+
+  box-sizing: border-box;
+
+  display: grid;
+
+  /*
+    IMPORTANTE:
+    Las dos columnas ahora son EXACTAMENTE IGUALES.
+    El centro sigue teniendo el separador.
+  */
+  grid-template-columns: 1fr auto 1fr;
+
+  align-items: stretch;
+
+  border-top: 1px solid
+    rgba(181, 96, 247, 0.18);
+
+  border-bottom: 1px solid
+    rgba(181, 96, 247, 0.18);
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(94, 29, 143, 0.12),
+      transparent
+    );
+}
+
+.wanted-stat {
+
+  width: 100%;
+
+  min-height: 75px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  text-align: center;
+}
+
+.wanted-stat label {
+
+  width: 100%;
+
+  height: 12px;
+
+  margin: 0 0 8px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  line-height: 12px;
+
+  text-align: center;
+}
+
+.wanted-stat strong {
+
+  width: 100%;
+
+  height: 52px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  margin: 0;
+
+  color: #f9f1ff;
+
+  font-size: 25px;
+
+  font-weight: 300;
+
+  letter-spacing: 3px;
+
+  line-height: 52px;
+
+  text-align: center;
+
+  text-shadow:
+    0 0 6px rgba(255, 255, 255, 0.85),
+    0 0 20px rgba(205, 143, 255, 0.8),
+    0 0 45px rgba(156, 66, 235, 0.6);
+}
+
+/*
+  EGO sigue siendo grande.
+  No cambiamos su estética.
+*/
+.wanted-ego {
+
+  font-size: 52px !important;
+
+  line-height: 52px !important;
+}
+
+/*
+  TITLE tiene otro tamaño porque el texto es más largo,
+  pero ocupa EXACTAMENTE el mismo bloque vertical
+  que EGO.
+*/
+.wanted-title-stat strong {
+
+  height: 52px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  font-size: 19px;
+
+  line-height: 52px;
+
+  white-space: nowrap;
+}
+
+/* DIVISOR */
+
+.wanted-divider {
+
+  width: 1px;
+
+  height: 55px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 8px;
+}
+
+.wanted-divider span {
+
+  width: 1px;
+
+  height: 12px;
+
+  background: rgba(183, 103, 248, 0.3);
+}
+
+.wanted-divider i {
+
+  width: 4px;
+
+  height: 4px;
+
+  background: #bb6fff;
+
+  box-shadow:
+    0 0 10px rgba(187, 111, 255, 0.9);
+}
+
+/* BOUNTY */
+
+.wanted-bounty {
+
+  width: 100%;
+
+  position: relative;
+
+  margin-top: 28px;
+
+  text-align: center;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+}
+
+.wanted-bounty label {
+
+  width: 100%;
+
+  text-align: center;
+}
+
+.wanted-bounty strong {
+
+  width: 100%;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  color: #ffffff;
+
+  font-size: clamp(38px, 5vw, 66px);
+
+  font-weight: 200;
+
+  letter-spacing: 3px;
+
+  text-align: center;
+
+  text-shadow:
+    0 0 7px #ffffff,
+    0 0 20px #e0b6ff,
+    0 0 45px rgba(184, 94, 255, 0.95),
+    0 0 90px rgba(135, 42, 218, 0.7);
+
+  animation: bountyPulse 3.2s ease-in-out infinite;
+}
+
+.wanted-bounty small {
+
+  font-size: 0.55em;
+
+  color: #dcb9ff;
+}
+
+@keyframes bountyPulse {
+
+  0%,
+  100% {
+
+    filter: brightness(1);
+  }
+
+  50% {
+
+    filter: brightness(1.18);
+  }
+}
+
+/* BOTTOM */
+
+.wanted-bottom {
+
+  width: 100%;
+
+  margin-top: auto;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+}
+
+.wanted-line {
+
+  width: 100%;
+
+  height: 1px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(182, 96, 250, 0.3),
+      transparent
+    );
+}
+
+.wanted-dead {
+
+  width: 100%;
+
+  margin-top: 15px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 20px;
+
+  text-align: center;
+}
+
+.wanted-dead strong {
+
+  color: #eee4fa;
+
+  font-size: 18px;
+
+  font-weight: 300;
+
+  letter-spacing: 7px;
+
+  text-align: center;
+
+  text-shadow:
+    0 0 12px rgba(179, 91, 251, 0.65);
+}
+
+.wanted-dead span {
+
+  width: 80px;
+
+  height: 1px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(181, 95, 249, 0.35)
+    );
+}
+
+.wanted-dead span:last-child {
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(181, 95, 249, 0.35),
+      transparent
+    );
+}
+
+/* RESPONSIVE */
+
+@media (min-width: 851px) {
+
+  /*
+    Más separación entre BOUNTY y DEAD OR ALIVE
+    solamente en ordenador.
+  */
+
+  .wanted-bottom {
+
+    margin-top: auto;
+
+    padding-top: 55px;
+  }
+
+  .wanted-dead {
+
+    margin-top: 28px;
+  }
+}
+
+@media (max-width: 850px) {
+
+  .wanted-header {
+
+    padding: 0 25px;
+  }
+
+  .wanted-content {
+
+    width: 94vw;
+  }
+
+  .wanted-card {
+
+    padding-left: 40px;
+
+    padding-right: 40px;
+  }
+}
+
+@media (max-width: 600px) {
+
+  .wanted-header {
+
+    height: 65px;
+
+    padding: 0 18px;
+  }
+
+  .wanted-system {
+
+    font-size: 8px;
+
+    letter-spacing: 4px;
+  }
+
+  .wanted-online {
+
+    display: none;
+  }
+
+  .wanted-content {
+
+    min-height: calc(100vh - 65px);
+
+    padding: 15px 0;
+  }
+
+  .wanted-card {
+
+    min-height: 620px;
+
+    padding: 28px 18px 25px;
+  }
+
+  .wanted-title {
+
+    gap: 10px;
+  }
+
+  .wanted-title h1 {
+
+    font-size: clamp(36px, 11vw, 55px);
+
+    letter-spacing: 6px;
+
+    text-indent: 6px;
+  }
+
+  .wanted-name {
+
+    margin-top: 24px;
+  }
+
+  .wanted-name h2 {
+
+    font-size: clamp(20px, 6vw, 34px);
+
+    letter-spacing: 4px;
+  }
+
+  .wanted-basic {
+
+    width: 100%;
+
+    gap: 10px;
+  }
+
+  .wanted-basic strong {
+
+    font-size: 9px;
+  }
+
+  .wanted-middle {
+
+    padding: 18px 8px;
+  }
+
+  .wanted-stat {
+
+    min-height: 60px;
+  }
+
+  .wanted-stat label {
+
+    height: 10px;
+
+    line-height: 10px;
+
+    margin-bottom: 5px;
+  }
+
+  .wanted-stat strong {
+
+    height: 38px;
+
+    line-height: 38px;
+  }
+
+  .wanted-ego {
+
+    font-size: 38px !important;
+
+    line-height: 38px !important;
+  }
+
+  .wanted-title-stat strong {
+
+    height: 38px;
+
+    font-size: 10px;
+
+    line-height: 38px;
+
+    letter-spacing: 1px;
+  }
+
+  .wanted-bounty strong {
+
+    font-size: 35px;
+  }
+
+  .wanted-dead {
+
+    gap: 8px;
+  }
+
+  .wanted-dead span {
+
+    width: 25px;
+  }
+
+  .wanted-dead strong {
+
+    font-size: 9px;
+
+    letter-spacing: 4px;
+  }
+}
