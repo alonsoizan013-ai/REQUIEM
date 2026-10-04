@@ -119,9 +119,99 @@ function createInitialData() {
   };
 }
 
+/*
+  NORMALIZA UN MES ANTIGUO
+
+  El XP mensual siempre se reconstruye a partir
+  del XP de sus actividades.
+
+  Esto evita depender de un totalXp antiguo
+  que pudiera estar desactualizado.
+*/
+function normalizeMonth(month) {
+  const emptyMonth = createEmptyMonth();
+
+  if (!month || typeof month !== "object") {
+    return emptyMonth;
+  }
+
+  const oldActivities =
+    month.activities &&
+    typeof month.activities === "object"
+      ? month.activities
+      : {};
+
+  const activities = {};
+
+  ACTIVITY_ORDER.forEach((activity) => {
+    const oldActivity =
+      oldActivities[activity];
+
+    if (
+      !oldActivity ||
+      typeof oldActivity !== "object"
+    ) {
+      activities[activity] =
+        emptyMonth.activities[activity];
+
+      return;
+    }
+
+    activities[activity] = {
+      ...emptyMonth.activities[activity],
+      ...oldActivity,
+
+      steps:
+        Number(oldActivity.steps) || 0,
+
+      km:
+        Number(oldActivity.km) || 0,
+
+      minutes:
+        Number(oldActivity.minutes) || 0,
+
+      calories:
+        Number(oldActivity.calories) || 0,
+
+      xp:
+        Number(oldActivity.xp) || 0,
+
+      records:
+        Array.isArray(oldActivity.records)
+          ? oldActivity.records
+          : [],
+    };
+  });
+
+  const totalXp = Object.values(
+    activities
+  ).reduce(
+    (total, activity) =>
+      total + (Number(activity.xp) || 0),
+    0
+  );
+
+  return {
+    ...month,
+    activities,
+    totalXp,
+  };
+}
+
+/*
+  CARGA Y MIGRA LOS DATOS EXISTENTES.
+
+  IMPORTANTE:
+  No borra el progreso anterior.
+
+  Cada mes conserva sus actividades y XP.
+  Después podemos calcular el XP GLOBAL
+  sumando todos los meses.
+*/
 function loadData() {
   try {
-    const saved = localStorage.getItem(STORAGE_KEY);
+    const saved =
+      localStorage.getItem(STORAGE_KEY);
 
     if (!saved) {
       return createInitialData();
@@ -129,12 +219,32 @@ function loadData() {
 
     const parsed = JSON.parse(saved);
 
-    if (!parsed || typeof parsed !== "object") {
+    if (
+      !parsed ||
+      typeof parsed !== "object"
+    ) {
       return createInitialData();
     }
 
+    const oldMonths =
+      parsed.months &&
+      typeof parsed.months === "object"
+        ? parsed.months
+        : {};
+
+    const normalizedMonths = {};
+
+    Object.keys(oldMonths).forEach(
+      (monthKey) => {
+        normalizedMonths[monthKey] =
+          normalizeMonth(
+            oldMonths[monthKey]
+          );
+      }
+    );
+
     return {
-      months: parsed.months || {},
+      months: normalizedMonths,
     };
   } catch {
     return createInitialData();
@@ -142,10 +252,50 @@ function loadData() {
 }
 
 function saveData(data) {
-  localStorage.setItem(
-    STORAGE_KEY,
-    JSON.stringify(data)
-  );
+  try {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(data)
+    );
+  } catch (error) {
+    console.error(
+      "Error guardando datos de Stamina:",
+      error
+    );
+  }
+}
+
+/*
+  XP GLOBAL DE STAMINA
+
+  Este es el cambio principal.
+
+  El nivel NO depende del mes seleccionado.
+
+  Se suma el XP de todos los meses existentes.
+*/
+function getGlobalXP(data) {
+  if (
+    !data ||
+    !data.months ||
+    typeof data.months !== "object"
+  ) {
+    return 0;
+  }
+
+  return Object.values(
+    data.months
+  ).reduce((total, month) => {
+    const normalizedMonth =
+      normalizeMonth(month);
+
+    return (
+      total +
+      (Number(
+        normalizedMonth.totalXp
+      ) || 0)
+    );
+  }, 0);
 }
 
 function getRequiredXPForLevel(level) {
@@ -155,7 +305,11 @@ function getRequiredXPForLevel(level) {
 
   return Math.ceil(
     BASE_XP *
-      (Math.pow(XP_GROWTH, level - 1) - 1) /
+      (Math.pow(
+        XP_GROWTH,
+        level - 1
+      ) -
+        1) /
       (XP_GROWTH - 1)
   );
 }
@@ -169,21 +323,25 @@ function getLevelFromXP(xp) {
     Math.floor(
       Math.log(
         1 +
-          (xp * (XP_GROWTH - 1)) /
+          (xp *
+            (XP_GROWTH - 1)) /
             BASE_XP
       ) /
         Math.log(XP_GROWTH)
     ) + 1;
 
   while (
-    getRequiredXPForLevel(level + 1) <= xp
+    getRequiredXPForLevel(
+      level + 1
+    ) <= xp
   ) {
     level += 1;
   }
 
   while (
     level > 1 &&
-    getRequiredXPForLevel(level) > xp
+    getRequiredXPForLevel(level) >
+      xp
   ) {
     level -= 1;
   }
@@ -192,19 +350,23 @@ function getLevelFromXP(xp) {
 }
 
 function getLevelProgress(xp) {
-  const level = getLevelFromXP(xp);
+  const level =
+    getLevelFromXP(xp);
 
   const currentLevelXP =
     getRequiredXPForLevel(level);
 
   const nextLevelXP =
-    getRequiredXPForLevel(level + 1);
+    getRequiredXPForLevel(
+      level + 1
+    );
 
   const progressXP =
     xp - currentLevelXP;
 
   const requiredForNext =
-    nextLevelXP - currentLevelXP;
+    nextLevelXP -
+    currentLevelXP;
 
   if (requiredForNext <= 0) {
     return 100;
@@ -214,25 +376,40 @@ function getLevelProgress(xp) {
     100,
     Math.max(
       0,
-      (progressXP / requiredForNext) * 100
+      (progressXP /
+        requiredForNext) *
+        100
     )
   );
 }
 
-function roundNumber(value, decimals = 1) {
+function roundNumber(
+  value,
+  decimals = 1
+) {
   if (!Number.isFinite(value)) {
     return 0;
   }
 
-  const factor = Math.pow(10, decimals);
+  const factor =
+    Math.pow(10, decimals);
 
-  return Math.round(value * factor) / factor;
+  return (
+    Math.round(
+      value * factor
+    ) / factor
+  );
 }
 
-function calculateXP(activity, values) {
+function calculateXP(
+  activity,
+  values
+) {
   if (activity === "walking") {
     return Math.floor(
-      (values.steps * values.km) / 10000
+      (values.steps *
+        values.km) /
+        10000
     );
   }
 
@@ -242,7 +419,9 @@ function calculateXP(activity, values) {
     }
 
     return Math.floor(
-      (values.km / values.minutes) * 120
+      (values.km /
+        values.minutes) *
+        120
     );
   }
 
@@ -252,7 +431,9 @@ function calculateXP(activity, values) {
     }
 
     return Math.floor(
-      (values.km / values.minutes) * 50
+      (values.km /
+        values.minutes) *
+        50
     );
   }
 
@@ -262,7 +443,9 @@ function calculateXP(activity, values) {
 function getPlayerData() {
   try {
     const saved =
-      localStorage.getItem(PLAYER_STORAGE_KEY);
+      localStorage.getItem(
+        PLAYER_STORAGE_KEY
+      );
 
     if (!saved) {
       return {
@@ -273,15 +456,19 @@ function getPlayerData() {
       };
     }
 
-    const parsed = JSON.parse(saved);
+    const parsed =
+      JSON.parse(saved);
 
     return {
       weight:
         Number(parsed.weight) || 70,
+
       height:
         Number(parsed.height) || 175,
+
       gender:
         parsed.gender || "male",
+
       age:
         Number(parsed.age) || 20,
     };
@@ -310,7 +497,8 @@ function calculateCalories(
         : 0;
 
     return Math.round(
-      ((ACTIVITY_DEFINITIONS.walking.met *
+      ((ACTIVITY_DEFINITIONS
+        .walking.met *
         3.5 *
         weight) /
         200) *
@@ -326,10 +514,15 @@ function calculateCalories(
       Number(values.minutes) || 0;
 
     const met =
-      ACTIVITY_DEFINITIONS[activity].met;
+      ACTIVITY_DEFINITIONS[
+        activity
+      ].met;
 
     return Math.round(
-      ((met * 3.5 * weight) / 200) *
+      ((met *
+        3.5 *
+        weight) /
+        200) *
         minutes
     );
   }
@@ -337,7 +530,10 @@ function calculateCalories(
   return 0;
 }
 
-function getSpeed(activity, values) {
+function getSpeed(
+  activity,
+  values
+) {
   if (
     activity !== "running" &&
     activity !== "cycling"
@@ -363,21 +559,24 @@ function createRecord(
   values,
   player
 ) {
-  const xp = calculateXP(
-    activity,
-    values
-  );
+  const xp =
+    calculateXP(
+      activity,
+      values
+    );
 
-  const calories = calculateCalories(
-    activity,
-    values,
-    player
-  );
+  const calories =
+    calculateCalories(
+      activity,
+      values,
+      player
+    );
 
-  const speed = getSpeed(
-    activity,
-    values
-  );
+  const speed =
+    getSpeed(
+      activity,
+      values
+    );
 
   return {
     id:
@@ -399,9 +598,13 @@ function createRecord(
     speed:
       activity === "walking"
         ? 0
-        : roundNumber(speed, 2),
+        : roundNumber(
+            speed,
+            2
+          ),
 
-    date: new Date().toISOString(),
+    date:
+      new Date().toISOString(),
   };
 }
 
@@ -409,7 +612,10 @@ function getActivityTotal(
   month,
   activity
 ) {
-  if (!month || !month.activities) {
+  if (
+    !month ||
+    !month.activities
+  ) {
     return {
       steps: 0,
       km: 0,
@@ -420,7 +626,9 @@ function getActivityTotal(
   }
 
   const data =
-    month.activities[activity];
+    month.activities[
+      activity
+    ];
 
   if (!data) {
     return {
@@ -433,25 +641,32 @@ function getActivityTotal(
   }
 
   return {
-    steps: Number(data.steps) || 0,
-    km: Number(data.km) || 0,
+    steps:
+      Number(data.steps) || 0,
+
+    km:
+      Number(data.km) || 0,
+
     minutes:
       Number(data.minutes) || 0,
+
     calories:
       Number(data.calories) || 0,
-    xp: Number(data.xp) || 0,
+
+    xp:
+      Number(data.xp) || 0,
   };
 }
 
 /*
   COMPARACIÓN MENSUAL
 
-  Si no existe un mes anterior con XP real,
-  devolvemos null para mostrar "—".
+  Esto sigue funcionando con el XP
+  exclusivo de cada mes.
 
-  No mostramos +100% cuando el mes anterior
-  tiene 0 XP porque matemáticamente no existe
-  un porcentaje de crecimiento válido desde 0.
+  IMPORTANTE:
+  La comparación mensual NO afecta
+  al nivel global.
 */
 function getMonthComparison(
   currentMonth,
@@ -465,76 +680,130 @@ function getMonthComparison(
   }
 
   const currentXP =
-    Number(currentMonth.totalXp) || 0;
+    Number(
+      currentMonth.totalXp
+    ) || 0;
 
   const previousXP =
-    Number(previousMonth.totalXp) || 0;
+    Number(
+      previousMonth.totalXp
+    ) || 0;
 
   if (previousXP <= 0) {
     return null;
   }
 
   return (
-    ((currentXP - previousXP) /
+    ((currentXP -
+      previousXP) /
       previousXP) *
     100
   );
 }
 
-function Stamina({ onBack }) {
+function Stamina({
+  onBack,
+}) {
   const [data, setData] =
     useState(loadData);
 
   const [selectedMonth, setSelectedMonth] =
-    useState(getMonthKey());
+    useState(
+      getMonthKey()
+    );
 
   const [view, setView] =
     useState("dashboard");
 
-  const [showActivityForm, setShowActivityForm] =
-    useState(false);
+  const [
+    showActivityForm,
+    setShowActivityForm,
+  ] = useState(false);
 
-  const [selectedActivity, setSelectedActivity] =
-    useState("walking");
+  const [
+    selectedActivity,
+    setSelectedActivity,
+  ] = useState(
+    "walking"
+  );
 
-  const [formValues, setFormValues] =
-    useState({
-      steps: "",
-      km: "",
-      minutes: "",
-    });
+  const [
+    formValues,
+    setFormValues,
+  ] = useState({
+    steps: "",
+    km: "",
+    minutes: "",
+  });
 
   const [levelUp, setLevelUp] =
     useState(null);
 
-  const [playerData, setPlayerData] =
-    useState(getPlayerData);
+  const [
+    playerData,
+    setPlayerData,
+  ] = useState(
+    getPlayerData
+  );
 
+  /*
+    CREA EL MES ACTUAL SI NO EXISTE.
+
+    IMPORTANTE:
+    Usamos la versión funcional de setData
+    para no depender de "data" dentro
+    del useEffect.
+
+    Esto elimina el warning de ESLint.
+  */
   useEffect(() => {
     const currentMonth =
       getMonthKey();
 
-    if (!data.months[currentMonth]) {
-      const updated = {
-        ...data,
+    setData((previousData) => {
+      if (
+        previousData.months[
+          currentMonth
+        ]
+      ) {
+        return previousData;
+      }
+
+      return {
+        ...previousData,
+
         months: {
-          ...data.months,
+          ...previousData.months,
+
           [currentMonth]:
             createEmptyMonth(),
         },
       };
-
-      setData(updated);
-      saveData(updated);
-    }
+    });
   }, []);
 
+  /*
+    GUARDA LOS DATOS CADA VEZ QUE CAMBIAN.
+
+    Como "data" está en las dependencias,
+    ESLint no genera warning.
+  */
   useEffect(() => {
-    const refreshPlayerData = () => {
-      setPlayerData(
-        getPlayerData()
-      );
-    };
+    if (
+      data &&
+      data.months
+    ) {
+      saveData(data);
+    }
+  }, [data]);
+
+  useEffect(() => {
+    const refreshPlayerData =
+      () => {
+        setPlayerData(
+          getPlayerData()
+        );
+      };
 
     window.addEventListener(
       "storage",
@@ -550,19 +819,40 @@ function Stamina({ onBack }) {
   }, []);
 
   const currentMonthData =
-    data.months[selectedMonth] ||
+    data.months[
+      selectedMonth
+    ] ||
     createEmptyMonth();
 
-  const currentXP =
+  /*
+    XP DEL MES SELECCIONADO
+
+    Solo se utiliza para estadísticas
+    y comparación mensual.
+  */
+  const currentMonthXP =
     Number(
       currentMonthData.totalXp
     ) || 0;
 
+  /*
+    XP GLOBAL
+
+    ESTE es el XP que determina
+    el nivel real de Stamina.
+  */
+  const globalXP =
+    getGlobalXP(data);
+
   const currentLevel =
-    getLevelFromXP(currentXP);
+    getLevelFromXP(
+      globalXP
+    );
 
   const currentProgress =
-    getLevelProgress(currentXP);
+    getLevelProgress(
+      globalXP
+    );
 
   const nextLevelXP =
     getRequiredXPForLevel(
@@ -575,8 +865,9 @@ function Stamina({ onBack }) {
     );
 
   const previousMonthData =
-    data.months[previousMonthKey] ||
-    null;
+    data.months[
+      previousMonthKey
+    ] || null;
 
   const monthComparison =
     getMonthComparison(
@@ -585,15 +876,22 @@ function Stamina({ onBack }) {
     );
 
   const months = useMemo(() => {
-    const keys = Object.keys(
-      data.months
-    );
+    const keys =
+      Object.keys(
+        data.months
+      );
 
     const currentKey =
       getMonthKey();
 
-    if (!keys.includes(currentKey)) {
-      keys.push(currentKey);
+    if (
+      !keys.includes(
+        currentKey
+      )
+    ) {
+      keys.push(
+        currentKey
+      );
     }
 
     return keys.sort(
@@ -627,1097 +925,1225 @@ function Stamina({ onBack }) {
 
   const totalRecords =
     ACTIVITY_ORDER.reduce(
-      (total, activity) => {
+      (
+        total,
+        activity
+      ) => {
         const records =
-          currentMonthData.activities[
+          currentMonthData
+            .activities[
             activity
-          ]?.records || [];
+          ]?.records ||
+          [];
 
         return (
-          total + records.length
+          total +
+          records.length
         );
       },
       0
     );
 
-  const handleActivityChange = (
-    activity
-  ) => {
-    setSelectedActivity(
-      activity
-    );
-
-    setFormValues({
-      steps: "",
-      km: "",
-      minutes: "",
-    });
-  };
-
-  const handleInputChange = (
-    event
-  ) => {
-    const {
-      name,
-      value,
-    } = event.target;
-
-    setFormValues(
-      (previous) => ({
-        ...previous,
-        [name]: value,
-      })
-    );
-  };
-
-  const handleAddActivity = (
-    event
-  ) => {
-    event.preventDefault();
-
-    const values = {
-      steps:
-        Number(formValues.steps) ||
-        0,
-
-      km:
-        Number(formValues.km) ||
-        0,
-
-      minutes:
-        Number(formValues.minutes) ||
-        0,
-    };
-
-    if (
-      selectedActivity ===
-      "walking"
-    ) {
-      if (
-        values.steps <= 0 ||
-        values.km <= 0
-      ) {
-        alert(
-          "Introduce pasos y kilómetros válidos."
-        );
-        return;
-      }
-    }
-
-    if (
-      selectedActivity ===
-        "running" ||
-      selectedActivity ===
-        "cycling"
-    ) {
-      if (
-        values.km <= 0 ||
-        values.minutes <= 0
-      ) {
-        alert(
-          "Introduce kilómetros y tiempo válidos."
-        );
-        return;
-      }
-    }
-
-    const record =
-      createRecord(
-        selectedActivity,
-        values,
-        playerData
+  const handleActivityChange =
+    (activity) => {
+      setSelectedActivity(
+        activity
       );
 
-    const oldLevel =
-      currentLevel;
-
-    const currentMonthCopy =
-      data.months[selectedMonth]
-        ? data.months[selectedMonth]
-        : createEmptyMonth();
-
-    const currentActivity =
-      currentMonthCopy.activities[
-        selectedActivity
-      ];
-
-    const updatedActivity = {
-      ...currentActivity,
-
-      xp:
-        currentActivity.xp +
-        record.xp,
-
-      calories:
-        currentActivity.calories +
-        record.calories,
-
-      records: [
-        ...currentActivity.records,
-        record,
-      ],
-    };
-
-    if (
-      selectedActivity ===
-      "walking"
-    ) {
-      updatedActivity.steps +=
-        values.steps;
-
-      updatedActivity.km +=
-        values.km;
-    }
-
-    if (
-      selectedActivity ===
-        "running" ||
-      selectedActivity ===
-        "cycling"
-    ) {
-      updatedActivity.km +=
-        values.km;
-
-      updatedActivity.minutes +=
-        values.minutes;
-    }
-
-    const updatedActivities = {
-      ...currentMonthCopy.activities,
-
-      [selectedActivity]:
-        updatedActivity,
-    };
-
-    const newTotalXP =
-      Object.values(
-        updatedActivities
-      ).reduce(
-        (total, activity) =>
-          total + activity.xp,
-        0
-      );
-
-    const updatedMonth = {
-      ...currentMonthCopy,
-
-      activities:
-        updatedActivities,
-
-      totalXp:
-        newTotalXP,
-    };
-
-    const updatedData = {
-      ...data,
-
-      months: {
-        ...data.months,
-
-        [selectedMonth]:
-          updatedMonth,
-      },
-    };
-
-    const newLevel =
-      getLevelFromXP(
-        newTotalXP
-      );
-
-    setData(updatedData);
-    saveData(updatedData);
-
-    setFormValues({
-      steps: "",
-      km: "",
-      minutes: "",
-    });
-
-    setShowActivityForm(false);
-
-    if (newLevel > oldLevel) {
-      setLevelUp({
-        oldLevel,
-        newLevel,
-        xp: record.xp,
+      setFormValues({
+        steps: "",
+        km: "",
+        minutes: "",
       });
-    } else if (record.xp <= 0) {
-      alert(
-        "Actividad registrada, pero no ha generado XP suficiente para sumar al nivel."
+    };
+
+  const handleInputChange =
+    (event) => {
+      const {
+        name,
+        value,
+      } = event.target;
+
+      setFormValues(
+        (previous) => ({
+          ...previous,
+          [name]: value,
+        })
       );
-    }
-  };
+    };
 
-  const closeLevelUp = () => {
-    setLevelUp(null);
-  };
+  const handleAddActivity =
+    (event) => {
+      event.preventDefault();
 
-  const getComparisonClass = () => {
-    if (
-      monthComparison === null
-    ) {
-      return "empty";
-    }
+      const values = {
+        steps:
+          Number(
+            formValues.steps
+          ) || 0,
 
-    if (monthComparison > 0) {
-      return "positive";
-    }
+        km:
+          Number(
+            formValues.km
+          ) || 0,
 
-    if (monthComparison < 0) {
-      return "negative";
-    }
+        minutes:
+          Number(
+            formValues.minutes
+          ) || 0,
+      };
 
-    return "neutral";
-  };
+      if (
+        selectedActivity ===
+        "walking"
+      ) {
+        if (
+          values.steps <= 0 ||
+          values.km <= 0
+        ) {
+          alert(
+            "Introduce pasos y kilómetros válidos."
+          );
 
-  const getComparisonValue = () => {
-    if (
-      monthComparison === null
-    ) {
-      return "—";
-    }
+          return;
+        }
+      }
 
-    if (monthComparison > 0) {
-      return `+${roundNumber(
+      if (
+        selectedActivity ===
+          "running" ||
+        selectedActivity ===
+          "cycling"
+      ) {
+        if (
+          values.km <= 0 ||
+          values.minutes <= 0
+        ) {
+          alert(
+            "Introduce kilómetros y tiempo válidos."
+          );
+
+          return;
+        }
+      }
+
+      const record =
+        createRecord(
+          selectedActivity,
+          values,
+          playerData
+        );
+
+      /*
+        NIVEL GLOBAL ANTES
+        DE AÑADIR LA ACTIVIDAD.
+      */
+      const oldGlobalXP =
+        getGlobalXP(data);
+
+      const oldLevel =
+        getLevelFromXP(
+          oldGlobalXP
+        );
+
+      const currentMonthCopy =
+        data.months[
+          selectedMonth
+        ]
+          ? normalizeMonth(
+              data.months[
+                selectedMonth
+              ]
+            )
+          : createEmptyMonth();
+
+      const currentActivity =
+        currentMonthCopy
+          .activities[
+          selectedActivity
+        ];
+
+      const updatedActivity = {
+        ...currentActivity,
+
+        xp:
+          currentActivity.xp +
+          record.xp,
+
+        calories:
+          currentActivity.calories +
+          record.calories,
+
+        records: [
+          ...currentActivity.records,
+          record,
+        ],
+      };
+
+      if (
+        selectedActivity ===
+        "walking"
+      ) {
+        updatedActivity.steps +=
+          values.steps;
+
+        updatedActivity.km +=
+          values.km;
+      }
+
+      if (
+        selectedActivity ===
+          "running" ||
+        selectedActivity ===
+          "cycling"
+      ) {
+        updatedActivity.km +=
+          values.km;
+
+        updatedActivity.minutes +=
+          values.minutes;
+      }
+
+      const updatedActivities = {
+        ...currentMonthCopy.activities,
+
+        [selectedActivity]:
+          updatedActivity,
+      };
+
+      /*
+        XP DEL MES
+      */
+      const newTotalXP =
+        Object.values(
+          updatedActivities
+        ).reduce(
+          (
+            total,
+            activity
+          ) =>
+            total +
+            (Number(
+              activity.xp
+            ) || 0),
+          0
+        );
+
+      const updatedMonth = {
+        ...currentMonthCopy,
+
+        activities:
+          updatedActivities,
+
+        totalXp:
+          newTotalXP,
+      };
+
+      const updatedData = {
+        ...data,
+
+        months: {
+          ...data.months,
+
+          [selectedMonth]:
+            updatedMonth,
+        },
+      };
+
+      /*
+        XP GLOBAL DESPUÉS
+        DE AÑADIR LA ACTIVIDAD.
+      */
+      const newGlobalXP =
+        getGlobalXP(
+          updatedData
+        );
+
+      const newLevel =
+        getLevelFromXP(
+          newGlobalXP
+        );
+
+      setData(
+        updatedData
+      );
+
+      setFormValues({
+        steps: "",
+        km: "",
+        minutes: "",
+      });
+
+      setShowActivityForm(
+        false
+      );
+
+      /*
+        LEVEL UP GLOBAL
+
+        Solo aparece cuando el nivel
+        REAL de Stamina aumenta.
+      */
+      if (
+        newLevel > oldLevel
+      ) {
+        setLevelUp({
+          oldLevel,
+          newLevel,
+          xp: record.xp,
+        });
+      }
+    };
+
+  const closeLevelUp =
+    () => {
+      setLevelUp(null);
+    };
+
+  const getComparisonClass =
+    () => {
+      if (
+        monthComparison ===
+        null
+      ) {
+        return "empty";
+      }
+
+      if (
+        monthComparison > 0
+      ) {
+        return "positive";
+      }
+
+      if (
+        monthComparison < 0
+      ) {
+        return "negative";
+      }
+
+      return "neutral";
+    };
+
+  const getComparisonValue =
+    () => {
+      if (
+        monthComparison ===
+        null
+      ) {
+        return "—";
+      }
+
+      if (
+        monthComparison > 0
+      ) {
+        return `+${roundNumber(
+          monthComparison,
+          1
+        )}%`;
+      }
+
+      return `${roundNumber(
         monthComparison,
         1
       )}%`;
-    }
+    };
 
-    return `${roundNumber(
-      monthComparison,
-      1
-    )}%`;
-  };
+  const getComparisonText =
+    () => {
+      if (
+        monthComparison ===
+        null
+      ) {
+        return "SIN DATOS DEL MES ANTERIOR";
+      }
 
-  const getComparisonText = () => {
-    if (
-      monthComparison === null
-    ) {
-      return "SIN DATOS DEL MES ANTERIOR";
-    }
+      return "VS MES ANTERIOR";
+    };
 
-    return "VS MES ANTERIOR";
-  };
+  const renderActivityForm =
+    () => {
+      const definition =
+        ACTIVITY_DEFINITIONS[
+          selectedActivity
+        ];
 
-  const renderActivityForm = () => {
-    const definition =
-      ACTIVITY_DEFINITIONS[
-        selectedActivity
-      ];
-
-    return (
-      <div className="stamina-modal-overlay">
-        <div className="stamina-modal">
-          <button
-            className="stamina-modal-close"
-            type="button"
-            onClick={() =>
-              setShowActivityForm(false)
-            }
-          >
-            ×
-          </button>
-
-          <div className="stamina-modal-header">
-            <span>
-              REQUIEM // ACTIVITY SYSTEM
-            </span>
-
-            <h2>
-              AÑADIR ACTIVIDAD
-            </h2>
-          </div>
-
-          <div className="stamina-activity-selector">
-            {ACTIVITY_ORDER.map(
-              (activity) => (
-                <button
-                  key={activity}
-                  type="button"
-                  className={
-                    selectedActivity ===
-                    activity
-                      ? "active"
-                      : ""
-                  }
-                  onClick={() =>
-                    handleActivityChange(
-                      activity
-                    )
-                  }
-                >
-                  {
-                    ACTIVITY_DEFINITIONS[
-                      activity
-                    ].name
-                  }
-                </button>
-              )
-            )}
-          </div>
-
-          <div className="stamina-selected-activity">
-            <span>
-              ACTIVIDAD SELECCIONADA
-            </span>
-
-            <strong>
-              {definition.name}
-            </strong>
-          </div>
-
-          <form
-            className="stamina-form"
-            onSubmit={
-              handleAddActivity
-            }
-          >
-            {selectedActivity ===
-              "walking" && (
-              <>
-                <label>
-                  <span>
-                    PASOS
-                  </span>
-
-                  <input
-                    type="number"
-                    name="steps"
-                    value={
-                      formValues.steps
-                    }
-                    onChange={
-                      handleInputChange
-                    }
-                    min="1"
-                    step="1"
-                    placeholder="10000"
-                  />
-                </label>
-
-                <label>
-                  <span>
-                    KILÓMETROS
-                  </span>
-
-                  <input
-                    type="number"
-                    name="km"
-                    value={
-                      formValues.km
-                    }
-                    onChange={
-                      handleInputChange
-                    }
-                    min="0.01"
-                    step="0.01"
-                    placeholder="7.5"
-                  />
-                </label>
-              </>
-            )}
-
-            {(selectedActivity ===
-              "running" ||
-              selectedActivity ===
-                "cycling") && (
-              <>
-                <label>
-                  <span>
-                    KILÓMETROS
-                  </span>
-
-                  <input
-                    type="number"
-                    name="km"
-                    value={
-                      formValues.km
-                    }
-                    onChange={
-                      handleInputChange
-                    }
-                    min="0.01"
-                    step="0.01"
-                    placeholder="5"
-                  />
-                </label>
-
-                <label>
-                  <span>
-                    TIEMPO EN MINUTOS
-                  </span>
-
-                  <input
-                    type="number"
-                    name="minutes"
-                    value={
-                      formValues.minutes
-                    }
-                    onChange={
-                      handleInputChange
-                    }
-                    min="1"
-                    step="1"
-                    placeholder="30"
-                  />
-                </label>
-              </>
-            )}
-
-            <div className="stamina-form-preview">
-              <span>
-                XP GENERADO
-              </span>
-
-              <strong>
-                {calculateXP(
-                  selectedActivity,
-                  {
-                    steps:
-                      Number(
-                        formValues.steps
-                      ) || 0,
-
-                    km:
-                      Number(
-                        formValues.km
-                      ) || 0,
-
-                    minutes:
-                      Number(
-                        formValues.minutes
-                      ) || 0,
-                  }
-                )}
-              </strong>
-            </div>
-
+      return (
+        <div className="stamina-modal-overlay">
+          <div className="stamina-modal">
             <button
-              className="stamina-submit"
-              type="submit"
+              className="stamina-modal-close"
+              type="button"
+              onClick={() =>
+                setShowActivityForm(
+                  false
+                )
+              }
             >
-              <span>
-                REGISTRAR ACTIVIDAD
-              </span>
-
-              <b>→</b>
+              ×
             </button>
-          </form>
-        </div>
-      </div>
-    );
-  };
 
-  const renderDashboard = () => (
-    <>
-      <section className="stamina-overview">
-        <div className="stamina-overview-title">
-          <span>
-            CURRENT MONTH
-          </span>
-
-          <h1>STAMINA</h1>
-
-          <p>
-            {formatMonth(
-              selectedMonth
-            )}
-          </p>
-        </div>
-
-        <div className="stamina-level-panel">
-          <span>
-            GENERAL LEVEL
-          </span>
-
-          <strong>
-            {currentLevel}
-          </strong>
-
-          <small>
-            {currentXP} XP
-          </small>
-        </div>
-
-        <div className="stamina-month-panel">
-          <span>
-            MONTHLY PROGRESS
-          </span>
-
-          <strong
-            className={`stamina-comparison-value ${getComparisonClass()}`}
-          >
-            {getComparisonValue()}
-          </strong>
-
-          <small
-            className={getComparisonClass()}
-          >
-            {getComparisonText()}
-          </small>
-        </div>
-      </section>
-
-      <section className="stamina-progress-section">
-        <div className="stamina-progress-header">
-          <span>
-            LEVEL {currentLevel}
-          </span>
-
-          <span>
-            {currentXP} /
-            {nextLevelXP} XP
-          </span>
-        </div>
-
-        <div className="stamina-progress-track">
-          <div
-            className="stamina-progress-fill"
-            style={{
-              width: `${currentProgress}%`,
-            }}
-          ></div>
-        </div>
-      </section>
-
-      <section className="stamina-month-selector">
-        <div>
-          <span>
-            MONTH ARCHIVE
-          </span>
-
-          <strong>
-            HISTORIAL MENSUAL
-          </strong>
-        </div>
-
-        <select
-          value={selectedMonth}
-          onChange={(event) =>
-            setSelectedMonth(
-              event.target.value
-            )
-          }
-        >
-          {months.map(
-            (month) => (
-              <option
-                key={month}
-                value={month}
-              >
-                {formatMonth(month)}
-              </option>
-            )
-          )}
-        </select>
-      </section>
-
-      <section className="stamina-navigation">
-        <button
-          type="button"
-          onClick={() =>
-            setShowActivityForm(true)
-          }
-        >
-          <span>+</span>
-          AÑADIR ACTIVIDAD
-        </button>
-
-        <button
-          type="button"
-          className={
-            view === "history"
-              ? "active"
-              : ""
-          }
-          onClick={() =>
-            setView("history")
-          }
-        >
-          <span>◈</span>
-          HISTORIAL
-        </button>
-
-        <button
-          type="button"
-          className={
-            view === "dashboard"
-              ? "active"
-              : ""
-          }
-          onClick={() =>
-            setView("dashboard")
-          }
-        >
-          <span>◆</span>
-          RESUMEN
-        </button>
-      </section>
-
-      <section className="stamina-activity-section">
-        <div className="stamina-section-heading">
-          <div>
-            <span>
-              ACTIVITY ANALYSIS
-            </span>
-
-            <h2>
-              RESUMEN DEL MES
-            </h2>
-          </div>
-
-          <small>
-            {totalRecords} ACTIVIDADES
-          </small>
-        </div>
-
-        <div className="stamina-activity-grid">
-          <article className="stamina-activity-card walking">
-            <div className="activity-card-header">
-              <div>
-                <span>
-                  01 // WALKING
-                </span>
-
-                <h3>
-                  CAMINATAS
-                </h3>
-              </div>
-
-              <strong>
-                {walking.xp}
-              </strong>
-            </div>
-
-            <div className="activity-card-stats">
-              <div>
-                <span>
-                  PASOS TOTALES
-                </span>
-
-                <strong>
-                  {Math.round(
-                    walking.steps
-                  ).toLocaleString(
-                    "es-ES"
-                  )}
-                </strong>
-              </div>
-
-              <div>
-                <span>
-                  KM TOTALES
-                </span>
-
-                <strong>
-                  {roundNumber(
-                    walking.km,
-                    2
-                  )}
-                </strong>
-              </div>
-
-              <div>
-                <span>
-                  KCAL TOTALES
-                </span>
-
-                <strong>
-                  {Math.round(
-                    walking.calories
-                  )}
-                </strong>
-              </div>
-            </div>
-
-            <div className="activity-card-footer">
+            <div className="stamina-modal-header">
               <span>
-                XP GENERADOS
+                REQUIEM // ACTIVITY SYSTEM
               </span>
 
-              <b>
-                {walking.xp}
-              </b>
-            </div>
-          </article>
-
-          <article className="stamina-activity-card running">
-            <div className="activity-card-header">
-              <div>
-                <span>
-                  02 // RUNNING
-                </span>
-
-                <h3>
-                  CARRERA
-                </h3>
-              </div>
-
-              <strong>
-                {running.xp}
-              </strong>
+              <h2>
+                AÑADIR ACTIVIDAD
+              </h2>
             </div>
 
-            <div className="activity-card-stats">
-              <div>
-                <span>
-                  KM TOTALES
-                </span>
-
-                <strong>
-                  {roundNumber(
-                    running.km,
-                    2
-                  )}
-                </strong>
-              </div>
-
-              <div>
-                <span>
-                  TIEMPO TOTAL
-                </span>
-
-                <strong>
-                  {Math.round(
-                    running.minutes
-                  )}{" "}
-                  MIN
-                </strong>
-              </div>
-
-              <div>
-                <span>
-                  VELOCIDAD MEDIA
-                </span>
-
-                <strong>
-                  {running.minutes >
-                  0
-                    ? roundNumber(
-                        running.km /
-                          (running.minutes /
-                            60),
-                        2
-                      )
-                    : 0}{" "}
-                  KM/H
-                </strong>
-              </div>
-
-              <div>
-                <span>
-                  KCAL TOTALES
-                </span>
-
-                <strong>
-                  {Math.round(
-                    running.calories
-                  )}
-                </strong>
-              </div>
-            </div>
-
-            <div className="activity-card-footer">
-              <span>
-                XP GENERADOS
-              </span>
-
-              <b>
-                {running.xp}
-              </b>
-            </div>
-          </article>
-
-          <article className="stamina-activity-card cycling">
-            <div className="activity-card-header">
-              <div>
-                <span>
-                  03 // CYCLING
-                </span>
-
-                <h3>
-                  BICICLETA
-                </h3>
-              </div>
-
-              <strong>
-                {cycling.xp}
-              </strong>
-            </div>
-
-            <div className="activity-card-stats">
-              <div>
-                <span>
-                  KM TOTALES
-                </span>
-
-                <strong>
-                  {roundNumber(
-                    cycling.km,
-                    2
-                  )}
-                </strong>
-              </div>
-
-              <div>
-                <span>
-                  TIEMPO TOTAL
-                </span>
-
-                <strong>
-                  {Math.round(
-                    cycling.minutes
-                  )}{" "}
-                  MIN
-                </strong>
-              </div>
-
-              <div>
-                <span>
-                  VELOCIDAD MEDIA
-                </span>
-
-                <strong>
-                  {cycling.minutes >
-                  0
-                    ? roundNumber(
-                        cycling.km /
-                          (cycling.minutes /
-                            60),
-                        2
-                      )
-                    : 0}{" "}
-                  KM/H
-                </strong>
-              </div>
-
-              <div>
-                <span>
-                  KCAL TOTALES
-                </span>
-
-                <strong>
-                  {Math.round(
-                    cycling.calories
-                  )}
-                </strong>
-              </div>
-            </div>
-
-            <div className="activity-card-footer">
-              <span>
-                XP GENERADOS
-              </span>
-
-              <b>
-                {cycling.xp}
-              </b>
-            </div>
-          </article>
-        </div>
-      </section>
-    </>
-  );
-
-  const renderHistory = () => (
-    <section className="stamina-history">
-      <div className="stamina-section-heading">
-        <div>
-          <span>
-            ACTIVITY LOG
-          </span>
-
-          <h2>
-            HISTORIAL DE ACTIVIDADES
-          </h2>
-        </div>
-
-        <small>
-          {formatMonth(
-            selectedMonth
-          )}
-        </small>
-      </div>
-
-      {ACTIVITY_ORDER.map(
-        (activity) => {
-          const records =
-            currentMonthData
-              .activities[
-              activity
-            ]?.records || [];
-
-          return (
-            <div
-              className="stamina-history-group"
-              key={activity}
-            >
-              <div className="history-group-header">
-                <span>
-                  {
-                    ACTIVITY_DEFINITIONS[
+            <div className="stamina-activity-selector">
+              {ACTIVITY_ORDER.map(
+                (
+                  activity
+                ) => (
+                  <button
+                    key={
                       activity
-                    ].name
-                  }
+                    }
+                    type="button"
+                    className={
+                      selectedActivity ===
+                      activity
+                        ? "active"
+                        : ""
+                    }
+                    onClick={() =>
+                      handleActivityChange(
+                        activity
+                      )
+                    }
+                  >
+                    {
+                      ACTIVITY_DEFINITIONS[
+                        activity
+                      ].name
+                    }
+                  </button>
+                )
+              )}
+            </div>
+
+            <div className="stamina-selected-activity">
+              <span>
+                ACTIVIDAD SELECCIONADA
+              </span>
+
+              <strong>
+                {
+                  definition.name
+                }
+              </strong>
+            </div>
+
+            <form
+              className="stamina-form"
+              onSubmit={
+                handleAddActivity
+              }
+            >
+              {selectedActivity ===
+                "walking" && (
+                <>
+                  <label>
+                    <span>
+                      PASOS
+                    </span>
+
+                    <input
+                      type="number"
+                      name="steps"
+                      value={
+                        formValues.steps
+                      }
+                      onChange={
+                        handleInputChange
+                      }
+                      min="1"
+                      step="1"
+                      placeholder="10000"
+                    />
+                  </label>
+
+                  <label>
+                    <span>
+                      KILÓMETROS
+                    </span>
+
+                    <input
+                      type="number"
+                      name="km"
+                      value={
+                        formValues.km
+                      }
+                      onChange={
+                        handleInputChange
+                      }
+                      min="0.01"
+                      step="0.01"
+                      placeholder="7.5"
+                    />
+                  </label>
+                </>
+              )}
+
+              {(selectedActivity ===
+                "running" ||
+                selectedActivity ===
+                  "cycling") && (
+                <>
+                  <label>
+                    <span>
+                      KILÓMETROS
+                    </span>
+
+                    <input
+                      type="number"
+                      name="km"
+                      value={
+                        formValues.km
+                      }
+                      onChange={
+                        handleInputChange
+                      }
+                      min="0.01"
+                      step="0.01"
+                      placeholder="5"
+                    />
+                  </label>
+
+                  <label>
+                    <span>
+                      TIEMPO EN MINUTOS
+                    </span>
+
+                    <input
+                      type="number"
+                      name="minutes"
+                      value={
+                        formValues.minutes
+                      }
+                      onChange={
+                        handleInputChange
+                      }
+                      min="1"
+                      step="1"
+                      placeholder="30"
+                    />
+                  </label>
+                </>
+              )}
+
+              <div className="stamina-form-preview">
+                <span>
+                  XP GENERADO
+                </span>
+
+                <strong>
+                  {calculateXP(
+                    selectedActivity,
+                    {
+                      steps:
+                        Number(
+                          formValues.steps
+                        ) || 0,
+
+                      km:
+                        Number(
+                          formValues.km
+                        ) || 0,
+
+                      minutes:
+                        Number(
+                          formValues.minutes
+                        ) || 0,
+                    }
+                  )}
+                </strong>
+              </div>
+
+              <button
+                className="stamina-submit"
+                type="submit"
+              >
+                <span>
+                  REGISTRAR ACTIVIDAD
                 </span>
 
                 <b>
-                  {records.length}{" "}
-                  REGISTROS
+                  →
                 </b>
+              </button>
+            </form>
+          </div>
+        </div>
+      );
+    };
+
+  const renderDashboard =
+    () => (
+      <>
+        <section className="stamina-overview">
+          <div className="stamina-overview-title">
+            <span>
+              CURRENT MONTH
+            </span>
+
+            <h1>
+              STAMINA
+            </h1>
+
+            <p>
+              {formatMonth(
+                selectedMonth
+              )}
+            </p>
+          </div>
+
+          <div className="stamina-level-panel">
+            <span>
+              GENERAL LEVEL
+            </span>
+
+            <strong>
+              {currentLevel}
+            </strong>
+
+            <small>
+              {globalXP} XP
+            </small>
+          </div>
+
+          <div className="stamina-month-panel">
+            <span>
+              MONTHLY PROGRESS
+            </span>
+
+            <strong
+              className={`stamina-comparison-value ${getComparisonClass()}`}
+            >
+              {getComparisonValue()}
+            </strong>
+
+            <small
+              className={
+                getComparisonClass()
+              }
+            >
+              {getComparisonText()}
+            </small>
+          </div>
+        </section>
+
+        <section className="stamina-progress-section">
+          <div className="stamina-progress-header">
+            <span>
+              LEVEL{" "}
+              {currentLevel}
+            </span>
+
+            <span>
+              {globalXP} /
+              {nextLevelXP} XP
+            </span>
+          </div>
+
+          <div className="stamina-progress-track">
+            <div
+              className="stamina-progress-fill"
+              style={{
+                width: `${currentProgress}%`,
+              }}
+            ></div>
+          </div>
+        </section>
+
+        <section className="stamina-month-selector">
+          <div>
+            <span>
+              MONTH ARCHIVE
+            </span>
+
+            <strong>
+              HISTORIAL MENSUAL
+            </strong>
+          </div>
+
+          <select
+            value={
+              selectedMonth
+            }
+            onChange={(
+              event
+            ) =>
+              setSelectedMonth(
+                event.target
+                  .value
+              )
+            }
+          >
+            {months.map(
+              (
+                month
+              ) => (
+                <option
+                  key={
+                    month
+                  }
+                  value={
+                    month
+                  }
+                >
+                  {formatMonth(
+                    month
+                  )}
+                </option>
+              )
+            )}
+          </select>
+        </section>
+
+        <section className="stamina-navigation">
+          <button
+            type="button"
+            onClick={() =>
+              setShowActivityForm(
+                true
+              )
+            }
+          >
+            <span>
+              +
+            </span>
+
+            AÑADIR ACTIVIDAD
+          </button>
+
+          <button
+            type="button"
+            className={
+              view ===
+              "history"
+                ? "active"
+                : ""
+            }
+            onClick={() =>
+              setView(
+                "history"
+              )
+            }
+          >
+            <span>
+              ◈
+            </span>
+
+            HISTORIAL
+          </button>
+
+          <button
+            type="button"
+            className={
+              view ===
+              "dashboard"
+                ? "active"
+                : ""
+            }
+            onClick={() =>
+              setView(
+                "dashboard"
+              )
+            }
+          >
+            <span>
+              ◆
+            </span>
+
+            RESUMEN
+          </button>
+        </section>
+
+        <section className="stamina-activity-section">
+          <div className="stamina-section-heading">
+            <div>
+              <span>
+                ACTIVITY ANALYSIS
+              </span>
+
+              <h2>
+                RESUMEN DEL MES
+              </h2>
+            </div>
+
+            <small>
+              {totalRecords}{" "}
+              ACTIVIDADES
+            </small>
+          </div>
+
+          <div className="stamina-activity-grid">
+            <article className="stamina-activity-card walking">
+              <div className="activity-card-header">
+                <div>
+                  <span>
+                    01 // WALKING
+                  </span>
+
+                  <h3>
+                    CAMINATAS
+                  </h3>
+                </div>
+
+                <strong>
+                  {walking.xp}
+                </strong>
               </div>
 
-              {records.length ===
-              0 ? (
-                <div className="history-empty">
-                  SIN ACTIVIDADES
-                  REGISTRADAS ESTE MES
-                </div>
-              ) : (
-                <div className="history-records">
-                  {[
-                    ...records,
-                  ]
-                    .sort(
-                      (a, b) =>
-                        new Date(
-                          b.date
-                        ) -
-                        new Date(
-                          a.date
-                        )
-                    )
-                    .map(
-                      (record) => (
-                        <div
-                          className="stamina-history-record"
-                          key={
-                            record.id
-                          }
-                        >
-                          <div>
-                            <span>
-                              FECHA
-                            </span>
+              <div className="activity-card-stats">
+                <div>
+                  <span>
+                    PASOS TOTALES
+                  </span>
 
-                            <strong>
-                              {new Date(
-                                record.date
-                              ).toLocaleDateString(
-                                "es-ES"
-                              )}
-                            </strong>
-                          </div>
-
-                          {activity ===
-                            "walking" && (
-                            <>
-                              <div>
-                                <span>
-                                  PASOS
-                                </span>
-
-                                <strong>
-                                  {record.values.steps.toLocaleString(
-                                    "es-ES"
-                                  )}
-                                </strong>
-                              </div>
-
-                              <div>
-                                <span>
-                                  KM
-                                </span>
-
-                                <strong>
-                                  {
-                                    record
-                                      .values
-                                      .km
-                                  }
-                                </strong>
-                              </div>
-                            </>
-                          )}
-
-                          {activity !==
-                            "walking" && (
-                            <>
-                              <div>
-                                <span>
-                                  KM
-                                </span>
-
-                                <strong>
-                                  {
-                                    record
-                                      .values
-                                      .km
-                                  }
-                                </strong>
-                              </div>
-
-                              <div>
-                                <span>
-                                  MIN
-                                </span>
-
-                                <strong>
-                                  {
-                                    record
-                                      .values
-                                      .minutes
-                                  }
-                                </strong>
-                              </div>
-
-                              <div>
-                                <span>
-                                  KM/H
-                                </span>
-
-                                <strong>
-                                  {
-                                    record.speed
-                                  }
-                                </strong>
-                              </div>
-                            </>
-                          )}
-
-                          <div>
-                            <span>
-                              KCAL
-                            </span>
-
-                            <strong>
-                              {
-                                record.calories
-                              }
-                            </strong>
-                          </div>
-
-                          <div>
-                            <span>
-                              XP
-                            </span>
-
-                            <strong className="history-xp">
-                              +{record.xp}
-                            </strong>
-                          </div>
-                        </div>
-                      )
+                  <strong>
+                    {Math.round(
+                      walking.steps
+                    ).toLocaleString(
+                      "es-ES"
                     )}
+                  </strong>
                 </div>
-              )}
-            </div>
-          );
-        }
-      )}
-    </section>
-  );
+
+                <div>
+                  <span>
+                    KM TOTALES
+                  </span>
+
+                  <strong>
+                    {roundNumber(
+                      walking.km,
+                      2
+                    )}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>
+                    KCAL TOTALES
+                  </span>
+
+                  <strong>
+                    {Math.round(
+                      walking.calories
+                    )}
+                  </strong>
+                </div>
+              </div>
+
+              <div className="activity-card-footer">
+                <span>
+                  XP GENERADOS
+                </span>
+
+                <b>
+                  {walking.xp}
+                </b>
+              </div>
+            </article>
+
+            <article className="stamina-activity-card running">
+              <div className="activity-card-header">
+                <div>
+                  <span>
+                    02 // RUNNING
+                  </span>
+
+                  <h3>
+                    CARRERA
+                  </h3>
+                </div>
+
+                <strong>
+                  {running.xp}
+                </strong>
+              </div>
+
+              <div className="activity-card-stats">
+                <div>
+                  <span>
+                    KM TOTALES
+                  </span>
+
+                  <strong>
+                    {roundNumber(
+                      running.km,
+                      2
+                    )}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>
+                    TIEMPO TOTAL
+                  </span>
+
+                  <strong>
+                    {Math.round(
+                      running.minutes
+                    )}{" "}
+                    MIN
+                  </strong>
+                </div>
+
+                <div>
+                  <span>
+                    VELOCIDAD MEDIA
+                  </span>
+
+                  <strong>
+                    {running.minutes >
+                    0
+                      ? roundNumber(
+                          running.km /
+                            (running.minutes /
+                              60),
+                          2
+                        )
+                      : 0}{" "}
+                    KM/H
+                  </strong>
+                </div>
+
+                <div>
+                  <span>
+                    KCAL TOTALES
+                  </span>
+
+                  <strong>
+                    {Math.round(
+                      running.calories
+                    )}
+                  </strong>
+                </div>
+              </div>
+
+              <div className="activity-card-footer">
+                <span>
+                  XP GENERADOS
+                </span>
+
+                <b>
+                  {running.xp}
+                </b>
+              </div>
+            </article>
+
+            <article className="stamina-activity-card cycling">
+              <div className="activity-card-header">
+                <div>
+                  <span>
+                    03 // CYCLING
+                  </span>
+
+                  <h3>
+                    BICICLETA
+                  </h3>
+                </div>
+
+                <strong>
+                  {cycling.xp}
+                </strong>
+              </div>
+
+              <div className="activity-card-stats">
+                <div>
+                  <span>
+                    KM TOTALES
+                  </span>
+
+                  <strong>
+                    {roundNumber(
+                      cycling.km,
+                      2
+                    )}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>
+                    TIEMPO TOTAL
+                  </span>
+
+                  <strong>
+                    {Math.round(
+                      cycling.minutes
+                    )}{" "}
+                    MIN
+                  </strong>
+                </div>
+
+                <div>
+                  <span>
+                    VELOCIDAD MEDIA
+                  </span>
+
+                  <strong>
+                    {cycling.minutes >
+                    0
+                      ? roundNumber(
+                          cycling.km /
+                            (cycling.minutes /
+                              60),
+                          2
+                        )
+                      : 0}{" "}
+                    KM/H
+                  </strong>
+                </div>
+
+                <div>
+                  <span>
+                    KCAL TOTALES
+                  </span>
+
+                  <strong>
+                    {Math.round(
+                      cycling.calories
+                    )}
+                  </strong>
+                </div>
+              </div>
+
+              <div className="activity-card-footer">
+                <span>
+                  XP GENERADOS
+                </span>
+
+                <b>
+                  {cycling.xp}
+                </b>
+              </div>
+            </article>
+          </div>
+        </section>
+      </>
+    );
+
+  const renderHistory =
+    () => (
+      <section className="stamina-history">
+        <div className="stamina-section-heading">
+          <div>
+            <span>
+              ACTIVITY LOG
+            </span>
+
+            <h2>
+              HISTORIAL DE ACTIVIDADES
+            </h2>
+          </div>
+
+          <small>
+            {formatMonth(
+              selectedMonth
+            )}
+          </small>
+        </div>
+
+        {ACTIVITY_ORDER.map(
+          (activity) => {
+            const records =
+              currentMonthData
+                .activities[
+                activity
+              ]?.records ||
+              [];
+
+            return (
+              <div
+                className="stamina-history-group"
+                key={
+                  activity
+                }
+              >
+                <div className="history-group-header">
+                  <span>
+                    {
+                      ACTIVITY_DEFINITIONS[
+                        activity
+                      ].name
+                    }
+                  </span>
+
+                  <b>
+                    {
+                      records.length
+                    }{" "}
+                    REGISTROS
+                  </b>
+                </div>
+
+                {records.length ===
+                0 ? (
+                  <div className="history-empty">
+                    SIN ACTIVIDADES
+                    REGISTRADAS
+                    ESTE MES
+                  </div>
+                ) : (
+                  <div className="history-records">
+                    {[
+                      ...records,
+                    ]
+                      .sort(
+                        (
+                          a,
+                          b
+                        ) =>
+                          new Date(
+                            b.date
+                          ) -
+                          new Date(
+                            a.date
+                          )
+                      )
+                      .map(
+                        (
+                          record
+                        ) => (
+                          <div
+                            className="stamina-history-record"
+                            key={
+                              record.id
+                            }
+                          >
+                            <div>
+                              <span>
+                                FECHA
+                              </span>
+
+                              <strong>
+                                {new Date(
+                                  record.date
+                                ).toLocaleDateString(
+                                  "es-ES"
+                                )}
+                              </strong>
+                            </div>
+
+                            {activity ===
+                              "walking" && (
+                              <>
+                                <div>
+                                  <span>
+                                    PASOS
+                                  </span>
+
+                                  <strong>
+                                    {record
+                                      .values
+                                      .steps.toLocaleString(
+                                        "es-ES"
+                                      )}
+                                  </strong>
+                                </div>
+
+                                <div>
+                                  <span>
+                                    KM
+                                  </span>
+
+                                  <strong>
+                                    {
+                                      record
+                                        .values
+                                        .km
+                                    }
+                                  </strong>
+                                </div>
+                              </>
+                            )}
+
+                            {activity !==
+                              "walking" && (
+                              <>
+                                <div>
+                                  <span>
+                                    KM
+                                  </span>
+
+                                  <strong>
+                                    {
+                                      record
+                                        .values
+                                        .km
+                                    }
+                                  </strong>
+                                </div>
+
+                                <div>
+                                  <span>
+                                    MIN
+                                  </span>
+
+                                  <strong>
+                                    {
+                                      record
+                                        .values
+                                        .minutes
+                                    }
+                                  </strong>
+                                </div>
+
+                                <div>
+                                  <span>
+                                    KM/H
+                                  </span>
+
+                                  <strong>
+                                    {
+                                      record
+                                        .speed
+                                    }
+                                  </strong>
+                                </div>
+                              </>
+                            )}
+
+                            <div>
+                              <span>
+                                KCAL
+                              </span>
+
+                              <strong>
+                                {
+                                  record.calories
+                                }
+                              </strong>
+                            </div>
+
+                            <div>
+                              <span>
+                                XP
+                              </span>
+
+                              <strong className="history-xp">
+                                +
+                                {
+                                  record.xp
+                                }
+                              </strong>
+                            </div>
+                          </div>
+                        )
+                      )}
+                  </div>
+                )}
+              </div>
+            );
+          }
+        )}
+      </section>
+    );
 
   return (
     <main className="stamina-screen">
@@ -1756,12 +2182,16 @@ function Stamina({ onBack }) {
 
         <div className="stamina-status">
           <span className="stamina-status-dot"></span>
-          <span>ONLINE</span>
+
+          <span>
+            ONLINE
+          </span>
         </div>
       </header>
 
       <section className="stamina-content">
-        {view === "dashboard"
+        {view ===
+        "dashboard"
           ? renderDashboard()
           : renderHistory()}
       </section>
@@ -1772,7 +2202,7 @@ function Stamina({ onBack }) {
         </span>
 
         <span>
-          {currentXP} XP
+          {globalXP} XP
         </span>
 
         <span>
@@ -1802,13 +2232,19 @@ function Stamina({ onBack }) {
 
             <div className="stamina-level-values">
               <strong>
-                {levelUp.oldLevel}
+                {
+                  levelUp.oldLevel
+                }
               </strong>
 
-              <span>→</span>
+              <span>
+                →
+              </span>
 
               <strong className="new-level">
-                {levelUp.newLevel}
+                {
+                  levelUp.newLevel
+                }
               </strong>
             </div>
 
